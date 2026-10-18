@@ -8,6 +8,13 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
+
+import static com.pedropathing.api.Paths.*;
+import com.pedropathing.paths.Path;
+
+import com.pedropathing.ivy.Scheduler;
+import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 @Autonomous
 public class basicBlue extends OpMode {
 
@@ -19,19 +26,28 @@ public class basicBlue extends OpMode {
 
     /* Poses specifying the startpoint and endpoint of the path we want the robot to follow.
     Use https://pedropathing.com/docs/pathing/reference/coordinates for coordinate reference.*/
-    private final Pose startPose = p.of(0, 0, 0);
-    private final Pose park = p.of(0, 0, 0);
+    private final Pose startPose = p.of(138, 6, 90);
+    private final Pose park = p.of(138, 24, 90);
+    private Path park() {
+        return line(startPose, park).linear(startPose, park);
+    }
 
     @Override
     public void init() {
+        Scheduler.reset();
+
         follower = Constants.create(hardwareMap);
+        follower.setPose(startPose);
     }
 
     @Override
     public void start() {
+        schedule(follow(follower, park()));
     }
 
     @Override
     public void loop() {
+        follower.update();
+        Scheduler.execute();
     }
 }
