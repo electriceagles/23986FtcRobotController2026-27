@@ -23,3 +23,7 @@ allprojects {
         }
     }
 }
+
+repositories {
+    mavenCentral()
+}
