@@ -1,0 +1,47 @@
+{
+  "configured": false,
+  "initialState": 0,
+  "pipeline": 0,
+  "stateTagIds": [
+    [],
+    []
+  ],
+  "aimOffsetDegrees": [
+    0,
+    0
+  ],
+  "start": [
+    56,
+    8,
+    90
+  ],
+  "minRotateTicks": 0,
+  "maxRotateTicks": 0,
+  "rotateSign": 1,
+  "aimKp": 0.02,
+  "maxRotatePower": 0.25,
+  "toleranceDegrees": 1.5,
+  "spinupSeconds": 0.5,
+  "alignmentSeconds": 0.25,
+  "tipConfirmSeconds": 0.35,
+  "tipSettleSeconds": 2,
+  "shotTimeoutSeconds": 6,
+  "segmentTimeoutSeconds": 5,
+  "deadlineSeconds": 29,
+  "cycles": [
+    {
+      "collectRoute": [],
+      "shootRoute": []
+    },
+    {
+      "collectRoute": [],
+      "shootRoute": []
+    },
+    {
+      "collectRoute": [],
+      "shootRoute": []
+    }
+  ],
+  "parkAfter2": [],
+  "parkAfter3": []
+}
