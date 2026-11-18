@@ -26,8 +26,8 @@ public class basicBlue extends OpMode {
 
     /* Poses specifying the startpoint and endpoint of the path we want the robot to follow.
     Use https://pedropathing.com/docs/pathing/reference/coordinates for coordinate reference.*/
-    private final Pose startPose = p.of(138, 6, 90);
-    private final Pose park = p.of(138, 24, 90);
+    private final Pose startPose = p.of(131.6024, 7.6842, 90);
+    private final Pose park = p.of(129.6387, 27.5038, 90);
     private Path park() {
         return line(startPose, park).linear(startPose, park);
     }
