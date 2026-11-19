@@ -40,22 +40,31 @@ public class oneTipRed extends OpMode {
     public Path park() {
         return curve(score, parkControl1, park).tangent();
     }
-    Command shoot = Command.build()
-            .setStart(() -> {shooter.setPower(1);
-                waitMs(500);
-                intake1.setPower(1);
-                intake2.setPower(1);
-                waitMs(5000);
-                intake1.setPower(0);
-                intake2.setPower(0);
-                shooter.setPower(0);
-            })
-            .setDone(() -> true);
+    private Command shoot() {
+        // Wait commands must be scheduled as steps, not called inside setStart.
+        return sequential(
+                hold(follower, score),
+                instant(() -> shooter.setPower(1)),
+                waitMs(500),
+                instant(() -> {
+                    intake1.setPower(1);
+                    intake2.setPower(1);
+                }),
+                waitMs(5000),
+                instant(this::stopShooting)
+        );
+    }
+
+    private void stopShooting() {
+        intake1.setPower(0);
+        intake2.setPower(0);
+        shooter.setPower(0);
+    }
 
     private Command autoRoutine(){
         return sequential(
                 follow(follower, score()),
-                shoot,
+                shoot(),
                 follow(follower, park())
         );
     }
@@ -77,5 +86,11 @@ public class oneTipRed extends OpMode {
     public void loop() {
         follower.update();
         Scheduler.execute();
+    }
+
+    @Override
+    public void stop() {
+        Scheduler.reset();
+        stopShooting();
     }
 }
