@@ -17,9 +17,11 @@ import com.pedropathing.ivy.Scheduler;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
+import static com.pedropathing.ivy.pedro.PedroCommands.hold;
 
 @Autonomous
 public class oneTipBlue extends OpMode{
@@ -37,21 +39,30 @@ public class oneTipBlue extends OpMode{
     public Path park() {
         return curve(score, parkControl1, park).tangent();
     }
-    Command shoot = Command.build()
-            .setStart(() -> {shooter.setPower(1);
-                waitMs(500);
-                intake1.setPower(1);
-                intake2.setPower(1);
-                waitMs(5000);
-                intake1.setPower(0);
-                intake2.setPower(0);
-                shooter.setPower(0);
-            })
-            .setDone(() -> true);
+    private Command shoot() {
+        // Wait commands must be scheduled as steps, not called inside setStart.
+        return sequential(
+                hold(follower, score),
+                instant(() -> shooter.setPower(1)),
+                waitMs(500),
+                instant(() -> {
+                    intake1.setPower(1);
+                    intake2.setPower(1);
+                }),
+                waitMs(5000),
+                instant(this::stopShooting)
+        );
+    }
+
+    private void stopShooting() {
+        intake1.setPower(0);
+        intake2.setPower(0);
+        shooter.setPower(0);
+    }
     private Command autoRoutine(){
         return sequential(
                 follow(follower, score()),
-                shoot,
+                shoot(),
                 follow(follower, park())
         );
     }
@@ -73,5 +84,11 @@ public class oneTipBlue extends OpMode{
     public void loop() {
         follower.update();
         Scheduler.execute();
+    }
+
+    @Override
+    public void stop() {
+        Scheduler.reset();
+        stopShooting();
     }
 }
