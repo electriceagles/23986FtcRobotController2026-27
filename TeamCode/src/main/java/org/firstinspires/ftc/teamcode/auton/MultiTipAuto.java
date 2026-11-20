@@ -10,6 +10,7 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
@@ -25,7 +26,7 @@ public abstract class MultiTipAuto extends OpMode {
     protected abstract int requestedTips();
     private enum Stage { ROUTE, SHOOT, SETTLE, DONE, ABORT }
     private Stage stage = Stage.ABORT;
-    private String status = "Not configured";
+    private String status = "Configured";
     private JSONObject config;
     private JSONArray cycles, route;
     private Follower follower;
@@ -100,6 +101,9 @@ public abstract class MultiTipAuto extends OpMode {
             shooter=hardwareMap.get(DcMotor.class,"shooter");
             intake1=hardwareMap.get(DcMotor.class,"intake1");
             intake2=hardwareMap.get(DcMotor.class,"intake2");
+
+            intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+
             stopMechanisms();
             rotate.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             rotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

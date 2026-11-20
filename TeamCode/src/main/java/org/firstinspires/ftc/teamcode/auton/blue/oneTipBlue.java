@@ -15,6 +15,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.commands.Commands.instant;
@@ -27,6 +28,7 @@ import static com.pedropathing.ivy.pedro.PedroCommands.hold;
 public class oneTipBlue extends OpMode{
     private DcMotor shooter, intake1, intake2;
     private Follower follower;
+
     private final PoseFactory poseFactory = PoseFactory.degrees();
     private final Pose startPose = poseFactory.of(85, 134, 270);
     private final Pose score = poseFactory.of(85, 120, 270);
@@ -75,6 +77,9 @@ public class oneTipBlue extends OpMode{
         shooter = hardwareMap.get(DcMotor.class, "shooter");
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
+
+        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+
     }
     @Override
     public void start() {

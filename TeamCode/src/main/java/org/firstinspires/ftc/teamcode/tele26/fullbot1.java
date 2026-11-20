@@ -50,24 +50,29 @@ public class fullbot1 extends OpMode {
 
         lf.setDirection(DcMotorSimple.Direction.FORWARD);
         lr.setDirection(DcMotorSimple.Direction.FORWARD);
-        rf.setDirection(DcMotorSimple.Direction.REVERSE);
+        rf.setDirection(DcMotorSimple.Direction.FORWARD);
         rr.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
-        intake = hardwareMap.get(DcMotorEx.class, "i");
+        intake1 = hardwareMap.get(DcMotorEx.class, "intake1");
+        intake2 = hardwareMap.get(DcMotorEx.class, "intake2");
 
         // Turret
         turret = hardwareMap.get(DcMotorEx.class, "turret");
         turret.setDirection(DcMotorEx.Direction.REVERSE);
 
-        shooter = hardwareMap.get(DcMotorEx.class, "sf1");
+        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         PIDFCoefficients pidf = new PIDFCoefficients(P, 0, 0, F);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setOffsets(-84, -168, DistanceUnit.MM);
+        pinpoint.setOffsets(-6.518500620924582, -8.005260557640257, DistanceUnit.INCH);
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 56, 8, AngleUnit.DEGREES, 90));
 
         telemetry.addLine("Starting Pose: x, y, theta");
