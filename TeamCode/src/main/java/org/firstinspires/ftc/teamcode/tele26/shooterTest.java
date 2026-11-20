@@ -77,7 +77,11 @@ public class shooterTest extends OpMode {
         PIDFCoefficients pidf = new PIDFCoefficients(P, 0, 0, F);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
 
-        shooter.setVelocity(curTargVel);
+        if (gamepad1.left_trigger > 0.1) {
+            shooter.setVelocity(curTargVel);
+        } else {
+            shooter.setVelocity(0);
+        }
 
         double curVel = shooter.getVelocity();
         double error = curTargVel-curVel;

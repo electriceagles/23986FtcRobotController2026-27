@@ -27,11 +27,11 @@ public class fullbot1 extends OpMode {
 
 
     // Shooter
-    double curTargetVelocity = 0;
+    public static double curTargetVelocity = -1500;
 
 
-    public static double P = 0;
-    public static double F = 0;
+    public static double P = 120.0400;
+    public static double F = 14.9600;
 
     // Odometry
     GoBildaPinpointDriver pinpoint;
