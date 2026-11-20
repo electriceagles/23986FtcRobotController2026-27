@@ -48,20 +48,21 @@ public class fullbot1 extends OpMode {
         rf = hardwareMap.get(DcMotorEx.class, "rf");
         rr = hardwareMap.get(DcMotorEx.class, "rr");
 
-        lf.setDirection(DcMotorSimple.Direction.FORWARD);
-        lr.setDirection(DcMotorSimple.Direction.FORWARD);
-        rf.setDirection(DcMotorSimple.Direction.FORWARD);
-        rr.setDirection(DcMotorSimple.Direction.REVERSE);
+        lf.setDirection(DcMotorSimple.Direction.REVERSE);
+        lr.setDirection(DcMotorSimple.Direction.REVERSE);
+        rf.setDirection(DcMotorSimple.Direction.REVERSE);
+        rr.setDirection(DcMotorSimple.Direction.FORWARD);
 
 
         intake1 = hardwareMap.get(DcMotorEx.class, "intake1");
-        intake2 = hardwareMap.get(DcMotorEx.class, "intake2");
+        intake2 = hardwareMap.get(DcMotorEx.class, "intake2"); //if go right up
 
         // Turret
         turret = hardwareMap.get(DcMotorEx.class, "turret");
         turret.setDirection(DcMotorEx.Direction.REVERSE);
 
-        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake1.setDirection(DcMotorSimple.Direction.FORWARD); //goes right in
+        intake2.setDirection(DcMotorSimple.Direction.FORWARD); // goes right up
 
 
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
@@ -88,18 +89,31 @@ public class fullbot1 extends OpMode {
 
 
         double y = gamepad1.left_stick_y;
-        double x = -gamepad1.left_stick_x;
+        double x = gamepad1.left_stick_x;
         double rx = -gamepad1.right_stick_x;
-        lf.setPower((y + x + rx * 0.8) * powerMult);
-        rf.setPower((y - x - rx * 0.8) * powerMult);
-        lr.setPower((y - x + rx * 0.8) * powerMult);
-        rr.setPower((y + x - rx * 0.8) * powerMult);
 
-        if (gamepad1.left_bumper) intake.setPower(1);
-        else if (gamepad1.left_trigger > 0.1) intake.setPower(-1);
-        else intake.setPower(0);
+        lf.setPower((y - x + rx * 0.8) * powerMult);
+        rf.setPower((y + x - rx * 0.8) * powerMult);
+        lr.setPower((y + x + rx * 0.8) * powerMult);
+        rr.setPower((y - x - rx * 0.8) * powerMult);
 
-        shooter.setVelocity(curTargetVelocity);
+        if (gamepad1.left_bumper) {
+            intake1.setPower(1);
+            intake2.setPower(1);
+        } else if (gamepad1.left_trigger > 0.1) {
+            intake1.setPower(-1);
+            intake2.setPower(-1);
+        }
+        else {
+            intake1.setPower(0);
+            intake2.setPower(0);
+        }
+
+        if (gamepad1.right_trigger > 0.1) {
+            shooter.setVelocity(curTargetVelocity);
+        } else {
+            shooter.setVelocity(0);
+        }
 
         double curVelocity1 = shooter.getVelocity();
         double error1 = curVelocity1 - curTargetVelocity;
