@@ -48,10 +48,10 @@ public class fullbot1 extends OpMode {
         rf = hardwareMap.get(DcMotorEx.class, "rf");
         rr = hardwareMap.get(DcMotorEx.class, "rr");
 
-        lf.setDirection(DcMotorSimple.Direction.REVERSE);
-        lr.setDirection(DcMotorSimple.Direction.REVERSE);
+        lf.setDirection(DcMotorSimple.Direction.FORWARD);
+        lr.setDirection(DcMotorSimple.Direction.FORWARD);
         rf.setDirection(DcMotorSimple.Direction.REVERSE);
-        rr.setDirection(DcMotorSimple.Direction.FORWARD);
+        rr.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         intake1 = hardwareMap.get(DcMotorEx.class, "intake1");
@@ -89,13 +89,12 @@ public class fullbot1 extends OpMode {
 
 
         double y = gamepad1.left_stick_y;
-        double x = gamepad1.left_stick_x;
+        double x = -gamepad1.left_stick_x;
         double rx = -gamepad1.right_stick_x;
-
-        lf.setPower((y - x + rx * 0.8) * powerMult);
-        rf.setPower((y + x - rx * 0.8) * powerMult);
-        lr.setPower((y + x + rx * 0.8) * powerMult);
-        rr.setPower((y - x - rx * 0.8) * powerMult);
+        lf.setPower((y + x + rx * 0.8) * powerMult);
+        rf.setPower((y - x - rx * 0.8) * powerMult);
+        lr.setPower((y - x + rx * 0.8) * powerMult);
+        rr.setPower((y + x - rx * 0.8) * powerMult);
 
         if (gamepad1.left_bumper) {
             intake1.setPower(1);
