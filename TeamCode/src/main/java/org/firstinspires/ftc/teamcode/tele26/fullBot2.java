@@ -112,6 +112,7 @@ public class fullBot2 extends OpMode {
         double y = gamepad1.left_stick_y;
         double x = -gamepad1.left_stick_x;
         double rx = -gamepad1.right_stick_x;
+
         lf.setPower((y + x + rx * 0.8) * powerMult);
         rf.setPower((y - x - rx * 0.8) * powerMult);
         lr.setPower((y - x + rx * 0.8) * powerMult);
