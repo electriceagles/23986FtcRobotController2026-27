@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-//sus
+
 @Configurable
 @TeleOp(name = "Full Bot Odo Tur", group = "TeleOp")
 public class fullBot2 extends OpMode {
@@ -32,34 +32,32 @@ public class fullBot2 extends OpMode {
 
     double powerMult = 0.9;
 
-    // TODO: hive pos in the same frame as the Pinpoint pose (inches)
-    public static double HIVE_X = 12.75;
-    public static double HIVE_Y = 17;
+    public static double hiveX = 12.75;
+    public static double hiveY = 17;
 
-    // Belt: 32T motor gear , tur= 140T turret gear
-    static final double GEAR_RATIO = 140.0 / 32.0;
-    // TODO: ticks per  rev for turret motor
-    public static double MOTOR_TICKS_PER_REV = 1425.1;
+    // Belt: 32T motor gear,  140T turret gear
+    static final double gearRatio = 140.0 / 32.0;
+    // Ticks per rev for  turret motor
+    public static double motorPPR = 1425.1;
 
     // Turret angle (deg) when the encoder is reset in init(). 0 = pointing straight forward.
-    public static double TURRET_START_DEG = 0.0;
+    public static double turStartDeg = 0.0;
 
-    // Travel limits in degrees (keep cables from wrapping)
-    public static double TURRET_MIN_DEG = -180;
-    public static double TURRET_MAX_DEG = 90;
+    // Turret angle convention: 0 = forward, POSITIVE = counterclockwise (same as robot heading).
+    // Hardstops: 90 deg cw, 190 deg ccw.
+    public static double turMinDeg = -90;   // cw limit
+    public static double turMaxDeg = 190;   // ccw limit
 
-    // PID (tunable  from Panels)
+    // PD(F) controller (no integral), tunable live from Panels
     public static double kP = 1.6;
-    public static double kI = 0.0;
     public static double kD = 0.12;
     public static double kF = 0.0;
-    public static double MAX_TURRET_POWER = 0.8;
-    public static double DEADBAND_DEG = 0.5;
-    public static double INTEGRAL_LIMIT = 0.3;
+    public static double turMaxPow = 0.8;
+    public static double deadbandDeg = 0.5;
 
     private boolean aiming = false;
     private boolean lastTriangle = false;
-    private double integral = 0;
+    private boolean needsPidReset = true;
     private double lastError = 0;
     private final ElapsedTime pidTimer = new ElapsedTime();
 
@@ -80,7 +78,7 @@ public class fullBot2 extends OpMode {
         intake1.setDirection(DcMotorSimple.Direction.FORWARD);
         intake2.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        // Turret: encoder reset here, so start every run with the turret pointing forward
+        // Turret: encoder reset here, turret must be pointing straight forward at INIT
         turret = hardwareMap.get(DcMotorEx.class, "turret");
         turret.setDirection(DcMotorEx.Direction.REVERSE);
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -92,9 +90,9 @@ public class fullBot2 extends OpMode {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(P, 0, 0, F));
 
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
-        pinpoint.setOffsets(-6.518500620924582, -8.005260557640257, DistanceUnit.INCH);
+        pinpoint.setOffsets(-6.859031737320067, -2.7204624686654157, DistanceUnit.INCH);
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 24, -67.71, AngleUnit.DEGREES, 90));
 
         telemetry.addData("Status", "Initialized");
@@ -136,12 +134,11 @@ public class fullBot2 extends OpMode {
             shooter.setVelocity(0);
         }
 
+        // ---------------- Turret aim (triangle toggles) ----------------
         boolean triangle = gamepad1.triangle;
         if (triangle && !lastTriangle) {
             aiming = !aiming;
-            integral = 0;
-            lastError = 0;
-            pidTimer.reset();
+            needsPidReset = true;
         }
         lastTriangle = triangle;
 
@@ -151,20 +148,29 @@ public class fullBot2 extends OpMode {
         double heading = pose.getHeading(AngleUnit.RADIANS);
 
         // Turret is at robot center, so robot position = turret position
-        double dx = HIVE_X - robotX;
-        double dy = HIVE_Y - robotY;
+        double dx = hiveX - robotX;
+        double dy = hiveY - robotY;
         double fieldAngle = Math.atan2(dy, dx);
 
-        // Angle relative to robot heading is  desired turret angle
         double desired = applyLimits(wrap(fieldAngle - heading));
 
-        double ticksPerRad = (MOTOR_TICKS_PER_REV * GEAR_RATIO) / (2.0 * Math.PI);
-        double current = Math.toRadians(TURRET_START_DEG) + turret.getCurrentPosition() / ticksPerRad;
+        double ticksPerRad = (motorPPR * gearRatio) / (2.0 * Math.PI);
+        double current = Math.toRadians(turStartDeg) + turret.getCurrentPosition() / ticksPerRad;
+
         double error = desired - current;
 
         double power = 0;
         if (aiming) {
             power = pid(error);
+        }
+
+        // Hard stops: never push further past a limit
+        double minRad = Math.toRadians(turMinDeg);
+        double maxRad = Math.toRadians(turMaxDeg);
+        boolean atMax = current >= maxRad && power > 0;
+        boolean atMin = current <= minRad && power < 0;
+        if (atMax || atMin) {
+            power = 0;
         }
         turret.setPower(power);
 
@@ -174,6 +180,7 @@ public class fullBot2 extends OpMode {
         telemetry.addData("Current turret deg", "%.1f", Math.toDegrees(current));
         telemetry.addData("Error deg", "%.2f", Math.toDegrees(error));
         telemetry.addData("Turret power", "%.2f", power);
+        telemetry.addData("At limit", atMax || atMin);
         telemetry.update();
     }
 
@@ -182,36 +189,47 @@ public class fullBot2 extends OpMode {
         pidTimer.reset();
         if (dt <= 0 || dt > 0.25) dt = 0.02;
 
-        if (Math.abs(error) < Math.toRadians(DEADBAND_DEG)) {
-            integral = 0;
+        // First loop after toggling
+        if (needsPidReset) {
+            lastError = error;
+            needsPidReset = false;
+        }
+
+        if (Math.abs(error) < Math.toRadians(deadbandDeg)) {
             lastError = error;
             return 0;
         }
 
-        integral = Range.clip(integral + error * dt, -INTEGRAL_LIMIT, INTEGRAL_LIMIT);
         double derivative = (error - lastError) / dt;
         lastError = error;
 
-        double out = kP * error + kI * integral + kD * derivative + kF * Math.signum(error);
-        return Range.clip(out, -MAX_TURRET_POWER, MAX_TURRET_POWER);
+        double out = kP * error + kD * derivative + kF * Math.signum(error);
+        return Range.clip(out, -turMaxPow, turMaxPow);
     }
 
-    // ---------------- Angle helpers ----------------
+    /** Wrap to (-pi, pi]. */
     private static double wrap(double a) {
         while (a > Math.PI) a -= 2 * Math.PI;
         while (a <= -Math.PI) a += 2 * Math.PI;
         return a;
     }
 
-    /** Pick the equivalent angle inside the turret's travel range, else clamp. */
+    /**
+     * Returns the target angle inside [MIN, MAX]. The legal range is under 360 deg, so at most one
+     * equivalent angle (a, a+2pi, a-2pi) fits. If none fits, the target is in the dead zone, so
+     * use whichever limit is angularly closest.
+     */
     private static double applyLimits(double a) {
-        double min = Math.toRadians(TURRET_MIN_DEG);
-        double max = Math.toRadians(TURRET_MAX_DEG);
+        double min = Math.toRadians(turMinDeg);
+        double max = Math.toRadians(turMaxDeg);
         if (a >= min && a <= max) return a;
         double up = a + 2 * Math.PI;
         double down = a - 2 * Math.PI;
         if (up >= min && up <= max) return up;
         if (down >= min && down <= max) return down;
-        return Range.clip(a, min, max);
+
+        double distToMin = Math.abs(wrap(a - min));
+        double distToMax = Math.abs(wrap(a - max));
+        return distToMin <= distToMax ? min : max;
     }
 }

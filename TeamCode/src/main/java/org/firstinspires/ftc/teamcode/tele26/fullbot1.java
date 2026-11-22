@@ -73,7 +73,7 @@ public class fullbot1 extends OpMode {
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setOffsets(-6.518500620924582, -8.005260557640257, DistanceUnit.INCH);
+        pinpoint.setOffsets(-6.859031737320067, -2.7204624686654157, DistanceUnit.INCH);
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 56, 8, AngleUnit.DEGREES, 90));
 
         telemetry.addLine("Starting Pose: x, y, theta");
