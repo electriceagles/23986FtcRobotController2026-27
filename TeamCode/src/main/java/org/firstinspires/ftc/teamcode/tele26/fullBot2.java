@@ -92,7 +92,7 @@ public class fullBot2 extends OpMode {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(P, 0, 0, F));
 
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         pinpoint.setOffsets(-6.518500620924582, -8.005260557640257, DistanceUnit.INCH);
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 24, -67.71, AngleUnit.DEGREES, 90));
@@ -111,12 +111,12 @@ public class fullBot2 extends OpMode {
         // must be called every loop or the pose never updates
         pinpoint.update();
 
-        double y = gamepad1.left_stick_y;
-        double x = -gamepad1.left_stick_x;
+        double x = gamepad1.left_stick_x;
+        double y = -gamepad1.left_stick_y;
         double rx = -gamepad1.right_stick_x;
-        lf.setPower((y + x + rx * 0.8) * powerMult);
-        rf.setPower((y - x - rx * 0.8) * powerMult);
-        lr.setPower((y - x + rx * 0.8) * powerMult);
+        lf.setPower((y + x - rx * 0.8) * powerMult);
+        rf.setPower((y - x + rx * 0.8) * powerMult);
+        lr.setPower((y - x - rx * 0.8) * powerMult);
         rr.setPower((y + x - rx * 0.8) * powerMult);
 
         if (gamepad1.left_bumper) {
