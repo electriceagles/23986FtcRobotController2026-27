@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.*;
 
 import com.pedropathing.follower.Follower;
+import org.firstinspires.ftc.teamcode.auton.ShooterCommands;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import com.pedropathing.api.PoseFactory;
@@ -77,17 +78,9 @@ public class Blue2Tip extends OpMode {
     }
 
     private Command shoot() {
-        // Wait commands must be scheduled as steps, not called inside setStart.
         return sequential(
                 hold(follower),
-                instant(() -> shooter.setVelocity(curTargetVelocity)),
-                waitMs(500),
-                instant(() -> {
-                    intake1.setPower(1);
-                    intake2.setPower(1);
-                }),
-                waitMs(5000),
-                instant(this::stopShooting)
+                ShooterCommands.shoot(shooter, intake1, intake2, curTargetVelocity)
         );
     }
     private void stopShooting() {
