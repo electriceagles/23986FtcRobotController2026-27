@@ -44,19 +44,17 @@ public class Red2Tip extends OpMode {
     private final Pose start = poseFactory.of(57.4471, 10.5712, 90);
     private final Pose start2shoot = poseFactory.of(57.5, 36.6951, 90);
     private final Pose toFlower = poseFactory.of(11.1, 47, 180);
-    private final Pose toFlowerControl1 = poseFactory.of(27, 33, 0);
-    private final Pose toFlowerControl2 = poseFactory.of(20, 47, 0);
+    private final Pose toFlowerControl1 = poseFactory.of(30, 31, 0);
+    private final Pose toFlowerControl2 = poseFactory.of(23, 47, 0);
     private final Pose hive2Start = toFlower;
     private final Pose hive2 = poseFactory.of(57.5, 119.5, 270);
-    private final Pose hive2Control1 = poseFactory.of(21, 47, 0);
-    private final Pose hive2Control2 = poseFactory.of(25.9216, 100.6443, 0);
+    private final Pose hive2Control1 = poseFactory.of(15, 47, 0);
+    private final Pose hive2Control2 = poseFactory.of(30, 112, 0);
     private final Pose flower2 = poseFactory.of(46.75, 130.9, 90);
-    private final Pose flower2Control1 = poseFactory.of(50.3333333333, 116.8333333333, 0);
-    private final Pose flower2Control2 = poseFactory.of(46.75, 120.6333333333, 0);
+    private final Pose flower2Control = poseFactory.of(46.75, 120, 0);
     private final Pose tip2Start = flower2;
     private final Pose tip2 = poseFactory.of(56.5, 119.1442, 270);
-    private final Pose tip2Control1 = poseFactory.of(46.75, 124.9666666667, 0);
-    private final Pose tip2Control2 = poseFactory.of(50, 121.0480666667, 0);
+    private final Pose tip2Control = poseFactory.of(46.75, 122, 0);
     private final Pose toParkStart = tip2;
     private final Pose toPark = poseFactory.of(15.3236, 113.547, 180);
 
@@ -65,7 +63,7 @@ public class Red2Tip extends OpMode {
     }
 
     public Path toFlower() {
-        return Paths.curve(start2shoot, toFlowerControl1, toFlowerControl2, toFlower).constant(toFlower);
+        return Paths.curve(start2shoot, toFlowerControl1, toFlowerControl2, toFlower).linear(start2shoot, toFlower);
     }
 
     public Path hive2() {
@@ -73,11 +71,11 @@ public class Red2Tip extends OpMode {
     }
 
     public Path flower2() {
-        return Paths.curve(hive2, flower2Control1, flower2Control2, flower2).linear(hive2, flower2);
+        return Paths.curve(hive2, flower2Control, flower2).linear(hive2, flower2);
     }
 
     public Path tip2() {
-        return Paths.curve(tip2Start, tip2Control1, tip2Control2, tip2).linear(tip2Start, tip2);
+        return Paths.curve(tip2Start, tip2Control, tip2).linear(tip2Start, tip2);
     }
 
     public Path toPark() {
