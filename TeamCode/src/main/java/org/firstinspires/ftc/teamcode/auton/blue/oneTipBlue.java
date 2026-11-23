@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import com.pedropathing.follower.Follower;
+import org.firstinspires.ftc.teamcode.auton.ShooterCommands;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import com.pedropathing.api.PoseFactory;
@@ -20,8 +21,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
-import static com.pedropathing.ivy.commands.Commands.instant;
-import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import static com.pedropathing.ivy.pedro.PedroCommands.hold;
@@ -49,17 +48,9 @@ public class oneTipBlue extends OpMode{
         return curve(score, parkControl1, park).tangent();
     }
     private Command shoot() {
-        // Wait commands must be scheduled as steps, not called inside setStart.
         return sequential(
                 hold(follower, score),
-                instant(() -> shooter.setVelocity(curTargetVelocity)),
-                waitMs(500),
-                instant(() -> {
-                    intake1.setPower(1);
-                    intake2.setPower(1);
-                }),
-                waitMs(5000),
-                instant(this::stopShooting)
+                ShooterCommands.shoot(shooter, intake1, intake2, curTargetVelocity)
         );
     }
 
