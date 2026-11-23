@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import com.pedropathing.follower.Follower;
+import org.firstinspires.ftc.teamcode.auton.ShooterCommands;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import com.pedropathing.api.PoseFactory;
@@ -84,14 +85,9 @@ public class Red2Tip extends OpMode {
     }
 
     private Command shoot() {
-        // Wait commands must be scheduled as steps, not called inside setStart.
         return sequential(
                 hold(follower),
-                instant(() -> shooter.setVelocity(curTargetVelocity)),
-                waitMs(500),
-                instant(this::startIntake),
-                waitMs(3500),
-                instant(this::stopShooting)
+                ShooterCommands.shoot(shooter, intake1, intake2, curTargetVelocity)
         );
     }
     private void startIntake() {
