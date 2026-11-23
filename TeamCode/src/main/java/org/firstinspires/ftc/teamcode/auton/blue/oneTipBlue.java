@@ -52,7 +52,7 @@ public class oneTipBlue extends OpMode{
         // Wait commands must be scheduled as steps, not called inside setStart.
         return sequential(
                 hold(follower, score),
-                instant(() -> shooter.setPower(curTargetVelocity)),
+                instant(() -> shooter.setVelocity(curTargetVelocity)),
                 waitMs(500),
                 instant(() -> {
                     intake1.setPower(1);
@@ -66,7 +66,7 @@ public class oneTipBlue extends OpMode{
     private void stopShooting() {
         intake1.setPower(0);
         intake2.setPower(0);
-        shooter.setPower(0);
+        shooter.setVelocity(0);
     }
     private Command autoRoutine(){
         return sequential(
@@ -85,9 +85,9 @@ public class oneTipBlue extends OpMode{
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
 
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake1.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake2.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake1.setDirection(DcMotorSimple.Direction.FORWARD);
 
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(P, 0, 0, F));
