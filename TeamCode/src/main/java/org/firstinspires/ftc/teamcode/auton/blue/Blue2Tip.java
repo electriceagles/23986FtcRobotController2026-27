@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.*;
 
 import com.pedropathing.follower.Follower;
-import org.firstinspires.ftc.teamcode.auton.ShooterCommands;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import com.pedropathing.api.PoseFactory;
@@ -79,8 +78,16 @@ public class Blue2Tip extends OpMode {
 
     private Command shoot() {
         return sequential(
-                hold(follower),
-                ShooterCommands.shoot(shooter, intake1, intake2, curTargetVelocity)
+                hold(follower)
+                .setStart(() -> shooter.setVelocity(curTargetVelocity))
+                .setExecute(() -> {
+                    waitMs(1500);
+                    intake1.setPower(1);
+                    intake2.setPower(1);
+                    waitMs(2500);
+                })
+                .setDone(() -> true)
+                .setEnd(endCondition -> stopShooting())
         );
     }
     private void stopShooting() {
@@ -91,13 +98,13 @@ public class Blue2Tip extends OpMode {
 
     private Command flowerDown() {
         return sequential(
-                hold(follower),
+                waitMs(500),
                 instant(() -> flower.setPosition(0.5))
         );
     }
     private Command flowerUp() {
         return sequential(
-                hold(follower),
+                waitMs(500),
                 instant(() -> flower.setPosition(0))
         );
     }
@@ -107,15 +114,11 @@ public class Blue2Tip extends OpMode {
         return sequential(
                 follow(follower, start2shoot()),
                 shoot(),
-                flowerDown(),
-                follow(follower, toFlower()),
-                follow(follower, hive2()),
-                flowerUp(),
+                flowerDown().with(follow(follower, toFlower())),
+                follow(follower, hive2()).with(flowerUp()),
                 shoot(),
-                flowerDown(),
-                follow(follower, flower2()),
-                follow(follower, tip2()),
-                flowerUp(),
+                flowerDown().with(follow(follower, flower2())),
+                follow(follower, tip2()).with(flowerUp()),
                 shoot(),
                 follow(follower, toPark())
         );

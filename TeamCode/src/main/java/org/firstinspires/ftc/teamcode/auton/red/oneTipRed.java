@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import com.pedropathing.follower.Follower;
-import org.firstinspires.ftc.teamcode.auton.ShooterCommands;
+
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import com.pedropathing.api.PoseFactory;
@@ -21,6 +21,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.*;
 
@@ -50,8 +51,16 @@ public class oneTipRed extends OpMode {
     }
     private Command shoot() {
         return sequential(
-                hold(follower, score),
-                ShooterCommands.shoot(shooter, intake1, intake2, curTargetVelocity)
+                hold(follower)
+                        .setStart(() -> shooter.setVelocity(curTargetVelocity))
+                        .setExecute(() -> {
+                            waitMs(1500);
+                            intake1.setPower(1);
+                            intake2.setPower(1);
+                            waitMs(2500);
+                        })
+                        .setDone(() -> true)
+                        .setEnd(endCondition -> stopShooting())
         );
     }
 

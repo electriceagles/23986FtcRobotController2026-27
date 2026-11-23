@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import com.pedropathing.follower.Follower;
-import org.firstinspires.ftc.teamcode.auton.ShooterCommands;
+
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import com.pedropathing.api.PoseFactory;
@@ -84,8 +84,15 @@ public class Red2Tip extends OpMode {
 
     private Command shoot() {
         return sequential(
-                hold(follower),
-                ShooterCommands.shoot(shooter, intake1, intake2, curTargetVelocity)
+                hold(follower)
+                        .setStart(() -> shooter.setVelocity(curTargetVelocity))
+                        .setExecute(() -> {
+                            waitMs(1500);
+                            startIntake();
+                            waitMs(2500);
+                        })
+                        .setDone(() -> true)
+                        .setEnd(endCondition -> stopShooting())
         );
     }
     private void startIntake() {
@@ -105,13 +112,13 @@ public class Red2Tip extends OpMode {
 
     private Command flowerDown() {
         return sequential(
-                hold(follower),
+                waitMs(500),
                 instant(() -> flower.setPosition(0.5))
         );
     }
     private Command flowerUp() {
         return sequential(
-                hold(follower),
+                waitMs(500),
                 instant(() -> flower.setPosition(0))
         );
     }
@@ -121,23 +128,11 @@ public class Red2Tip extends OpMode {
         return sequential(
                 follow(follower, start2shoot()),
                 shoot(),
-                flowerDown(),
-                instant(this::startIntake),
-                follow(follower, toFlower()),
-                hold(follower, toFlower),
-                waitMs(350),
-                follow(follower, hive2()),
-                flowerUp(),
-                instant(this::stopIntake),
+                flowerDown().with(follow(follower, toFlower())),
+                follow(follower, hive2()).with(flowerUp()),
                 shoot(),
-                flowerDown(),
-                instant(this::startIntake),
-                follow(follower, flower2()),
-                hold(follower, flower2),
-                waitMs(350),
-                follow(follower, tip2()),
-                flowerUp(),
-                instant(this::stopIntake),
+                flowerDown().with(follow(follower, flower2())),
+                follow(follower, tip2()).with(flowerUp()),
                 shoot(),
                 follow(follower, toPark())
         );
