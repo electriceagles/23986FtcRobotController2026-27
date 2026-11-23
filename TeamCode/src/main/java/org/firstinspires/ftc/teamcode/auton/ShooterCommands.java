@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 public final class ShooterCommands {
     private static final double SHOT_SECONDS = 5.0;
-    private static final double SPIN_UP_TIMEOUT_SECONDS = 3.0;
     private static final double VELOCITY_TOLERANCE = 0.05;
 
     private ShooterCommands() {
@@ -33,8 +32,7 @@ public final class ShooterCommands {
                 .setExecute(() -> {
                     boolean ready = targetVelocity != 0
                             && Math.abs(shooter.getVelocity() - targetVelocity) <= tolerance;
-                    if (!timing.atSpeedOnce && ready
-                            && timing.timer.seconds() < SPIN_UP_TIMEOUT_SECONDS) {
+                    if (!timing.atSpeedOnce && ready) {
                         timing.atSpeedOnce = true;
                         timing.timer.reset();
                     }
@@ -45,8 +43,7 @@ public final class ShooterCommands {
                     intake1.setPower(power);
                     intake2.setPower(power);
                 })
-                .setDone(() -> timing.timer.seconds() >=
-                        (timing.atSpeedOnce ? SHOT_SECONDS : SPIN_UP_TIMEOUT_SECONDS))
+                .setDone(() -> timing.atSpeedOnce && timing.timer.seconds() >= SHOT_SECONDS)
                 .setEnd(endCondition -> {
                     intake1.setPower(0);
                     intake2.setPower(0);
