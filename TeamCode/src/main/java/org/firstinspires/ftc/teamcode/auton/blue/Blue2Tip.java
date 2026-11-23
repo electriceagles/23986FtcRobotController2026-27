@@ -16,7 +16,9 @@ import com.pedropathing.paths.Path;
 
 import com.pedropathing.ivy.Scheduler;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
@@ -28,8 +30,13 @@ import static com.pedropathing.ivy.pedro.PedroCommands.hold;
 
 @Autonomous
 public class Blue2Tip extends OpMode {
-    private DcMotor shooter, intake1, intake2;
+    private DcMotor intake1, intake2;
+    private DcMotorEx shooter;
     private Servo flower;
+
+    public static double curTargetVelocity = -1500;
+    public static double P = 120.0400;
+    public static double F = 14.9600;
     private Follower follower;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
@@ -73,7 +80,7 @@ public class Blue2Tip extends OpMode {
         // Wait commands must be scheduled as steps, not called inside setStart.
         return sequential(
                 hold(follower),
-                instant(() -> shooter.setPower(1)),
+                instant(() -> shooter.setPower(curTargetVelocity)),
                 waitMs(500),
                 instant(() -> {
                     intake1.setPower(1);
@@ -127,12 +134,17 @@ public class Blue2Tip extends OpMode {
         follower = Constants.create(hardwareMap);
         follower.setPose(start2shoot);
         follower.update();
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
         flower = hardwareMap.get(Servo.class, "flower");
 
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake1.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(P, 0, 0, F));
 
     }
     @Override
