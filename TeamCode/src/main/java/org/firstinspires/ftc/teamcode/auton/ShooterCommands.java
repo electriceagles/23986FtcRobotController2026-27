@@ -6,7 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public final class ShooterCommands {
-    private static final double SHOT_SECONDS = 4.0;
+    private static final double SHOT_SECONDS = 5.0;
+    private static final double SPIN_UP_TIMEOUT_SECONDS = 3.0;
     private static final double VELOCITY_TOLERANCE = 0.05;
 
     private ShooterCommands() {
@@ -14,7 +15,11 @@ public final class ShooterCommands {
 
     public static Command shoot(DcMotorEx shooter, DcMotor intake1, DcMotor intake2,
                                 double targetVelocity) {
-        ElapsedTime shotTimer = new ElapsedTime();
+        class ShotTiming {
+            final ElapsedTime timer = new ElapsedTime();
+            boolean atSpeedOnce;
+        }
+        ShotTiming timing = new ShotTiming();
         double tolerance = Math.abs(targetVelocity) * VELOCITY_TOLERANCE;
 
         return Command.build()
@@ -22,18 +27,26 @@ public final class ShooterCommands {
                     intake1.setPower(0);
                     intake2.setPower(0);
                     shooter.setVelocity(targetVelocity);
-                    shotTimer.reset();
+                    timing.atSpeedOnce = false;
+                    timing.timer.reset();
                 })
                 .setExecute(() -> {
-                    // Pause feeding while the flywheel is recovering between shots.
-                    boolean ready = shotTimer.seconds() < SHOT_SECONDS
-                            && targetVelocity != 0
+                    boolean ready = targetVelocity != 0
                             && Math.abs(shooter.getVelocity() - targetVelocity) <= tolerance;
-                    double power = ready ? 1 : 0;
+                    if (!timing.atSpeedOnce && ready
+                            && timing.timer.seconds() < SPIN_UP_TIMEOUT_SECONDS) {
+                        timing.atSpeedOnce = true;
+                        timing.timer.reset();
+                    }
+
+                    // Pause feeding during recovery without restarting the shot clock.
+                    double power = timing.atSpeedOnce && ready
+                            && timing.timer.seconds() < SHOT_SECONDS ? 1 : 0;
                     intake1.setPower(power);
                     intake2.setPower(power);
                 })
-                .setDone(() -> shotTimer.seconds() >= SHOT_SECONDS)
+                .setDone(() -> timing.timer.seconds() >=
+                        (timing.atSpeedOnce ? SHOT_SECONDS : SPIN_UP_TIMEOUT_SECONDS))
                 .setEnd(endCondition -> {
                     intake1.setPower(0);
                     intake2.setPower(0);
