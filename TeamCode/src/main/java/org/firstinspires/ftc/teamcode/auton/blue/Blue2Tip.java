@@ -16,7 +16,9 @@ import com.pedropathing.paths.Path;
 
 import com.pedropathing.ivy.Scheduler;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
@@ -28,8 +30,13 @@ import static com.pedropathing.ivy.pedro.PedroCommands.hold;
 
 @Autonomous
 public class Blue2Tip extends OpMode {
-    private DcMotor shooter, intake1, intake2;
+    private DcMotor intake1, intake2;
+    private DcMotorEx shooter;
     private Servo flower;
+
+    public static double curTargetVelocity = -1500;
+    public static double P = 120.0400;
+    public static double F = 14.9600;
     private Follower follower;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
@@ -70,34 +77,34 @@ public class Blue2Tip extends OpMode {
     }
 
     private Command shoot() {
-        // Wait commands must be scheduled as steps, not called inside setStart.
         return sequential(
-                hold(follower),
-                instant(() -> shooter.setPower(1)),
-                waitMs(500),
-                instant(() -> {
+                hold(follower)
+                .setStart(() -> shooter.setVelocity(curTargetVelocity))
+                .setExecute(() -> {
+                    waitMs(1500);
                     intake1.setPower(1);
                     intake2.setPower(1);
-                }),
-                waitMs(5000),
-                instant(this::stopShooting)
+                    waitMs(2500);
+                })
+                .setDone(() -> true)
+                .setEnd(endCondition -> stopShooting())
         );
     }
     private void stopShooting() {
         intake1.setPower(0);
         intake2.setPower(0);
-        shooter.setPower(0);
+        shooter.setVelocity(0);
     }
 
     private Command flowerDown() {
         return sequential(
-                hold(follower),
+                waitMs(500),
                 instant(() -> flower.setPosition(0.5))
         );
     }
     private Command flowerUp() {
         return sequential(
-                hold(follower),
+                waitMs(500),
                 instant(() -> flower.setPosition(0))
         );
     }
@@ -107,15 +114,11 @@ public class Blue2Tip extends OpMode {
         return sequential(
                 follow(follower, start2shoot()),
                 shoot(),
-                flowerDown(),
-                follow(follower, toFlower()),
-                follow(follower, hive2()),
-                flowerUp(),
+                flowerDown().with(follow(follower, toFlower())),
+                follow(follower, hive2()).with(flowerUp()),
                 shoot(),
-                flowerDown(),
-                follow(follower, flower2()),
-                follow(follower, tip2()),
-                flowerUp(),
+                flowerDown().with(follow(follower, flower2())),
+                follow(follower, tip2()).with(flowerUp()),
                 shoot(),
                 follow(follower, toPark())
         );
@@ -127,12 +130,17 @@ public class Blue2Tip extends OpMode {
         follower = Constants.create(hardwareMap);
         follower.setPose(start2shoot);
         follower.update();
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
         flower = hardwareMap.get(Servo.class, "flower");
 
-        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake2.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake1.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(P, 0, 0, F));
 
     }
     @Override

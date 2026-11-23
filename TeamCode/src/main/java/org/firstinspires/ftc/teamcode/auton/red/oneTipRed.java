@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import com.pedropathing.follower.Follower;
+
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import com.pedropathing.api.PoseFactory;
@@ -15,16 +16,23 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
-import static com.pedropathing.ivy.commands.Commands.*;
+import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.*;
 
 @Autonomous
 public class oneTipRed extends OpMode {
-    private DcMotor shooter, intake1, intake2;
+    private DcMotor intake1, intake2;
+    private DcMotorEx shooter;
+
+    public static double curTargetVelocity = -1500;
+    public static double P = 120.0400;
+    public static double F = 14.9600;
     private Follower follower;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
@@ -42,24 +50,24 @@ public class oneTipRed extends OpMode {
         return curve(score, parkControl1, park).tangent();
     }
     private Command shoot() {
-        // Wait commands must be scheduled as steps, not called inside setStart.
         return sequential(
-                hold(follower, score),
-                instant(() -> shooter.setPower(1)),
-                waitMs(500),
-                instant(() -> {
-                    intake1.setPower(1);
-                    intake2.setPower(1);
-                }),
-                waitMs(5000),
-                instant(this::stopShooting)
+                hold(follower)
+                        .setStart(() -> shooter.setVelocity(curTargetVelocity))
+                        .setExecute(() -> {
+                            waitMs(1500);
+                            intake1.setPower(1);
+                            intake2.setPower(1);
+                            waitMs(2500);
+                        })
+                        .setDone(() -> true)
+                        .setEnd(endCondition -> stopShooting())
         );
     }
 
     private void stopShooting() {
         intake1.setPower(0);
         intake2.setPower(0);
-        shooter.setPower(0);
+        shooter.setVelocity(0);
     }
 
     private Command autoRoutine(){
@@ -75,12 +83,16 @@ public class oneTipRed extends OpMode {
         follower = Constants.create(hardwareMap);
         follower.setPose(startPose);
         follower.update();
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
 
-        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake2.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake1.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(P, 0, 0, F));
     }
     @Override
     public void start() {
