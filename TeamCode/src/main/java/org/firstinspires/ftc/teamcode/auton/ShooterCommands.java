@@ -12,8 +12,7 @@ public final class ShooterCommands {
     private ShooterCommands() {
     }
 
-    public static Command shoot(DcMotorEx shooter, DcMotor intake1, DcMotor intake2,
-                                double targetVelocity) {
+    public static Command shoot(DcMotorEx shooter, DcMotor intake1, DcMotor intake2, double targetVelocity) {
         class ShotTiming {
             final ElapsedTime timer = new ElapsedTime();
             boolean atSpeedOnce;
@@ -30,8 +29,7 @@ public final class ShooterCommands {
                     timing.timer.reset();
                 })
                 .setExecute(() -> {
-                    boolean ready = targetVelocity != 0
-                            && Math.abs(shooter.getVelocity() - targetVelocity) <= tolerance;
+                    boolean ready = targetVelocity != 0 && Math.abs(shooter.getVelocity() - targetVelocity) <= tolerance;
                     if (!timing.atSpeedOnce && ready) {
                         timing.atSpeedOnce = true;
                         timing.timer.reset();
