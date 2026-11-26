@@ -59,8 +59,7 @@ public class oneTipBlue extends OpMode{
                             waitMs(2500);
                         })
                         .setDone(() -> true)
-                        .setEnd(endCondition -> stopShooting())
-        );
+                        .setEnd(endCondition -> stopShooting()));
     }
 
     private void stopShooting() {
